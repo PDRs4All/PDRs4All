@@ -9,13 +9,6 @@ set -e
 # J=48.
 J=1
 
-# JJ is the number of processes for stage 3, where cube_build is a big memory bottleneck. The
-# required memory depends heavily on the final shape of the cube. For Orion, there is lots of
-# empty space in the cubes with the default coordinate grids, and about 50 GB of RAM was needed
-# per process. But with ~200GB RAM, the 3 NIRSpec cubes can be built simultaneously, which saves
-# some time for this slow step.
-JJ=1
-
 # Use these if there's too much multithreading. On machines with high core counts, numpy etc can
 # sometimes launch a large number of threads. This doesn't give much speedup if multiprocessing
 # is used already.
