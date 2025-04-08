@@ -52,7 +52,14 @@ def pipeline_class_and_options_dict(stage, instrument, output_dir):
     if stage == 1:
         class_name = Detector1Pipeline
         if instrument == "NRS_IFU":
-            options["steps"] = {"clean_flicker_noise": skiptrue}
+            options["steps"] = {
+                "clean_flicker_noise": {
+                    "skip": False,
+                    "mask_science_regions": True,
+                    "fit_method": "fft",
+                    "background_method": "model",
+                }
+            }
 
     if instrument == "NRS_IFU":
         if stage == 2:
