@@ -14,6 +14,7 @@ from regions import Regions, SkyRegion
 from specutils import Spectrum1D
 from pdrs4all.postprocess import spectral_segments
 import numpy as np
+from warnings import warn
 
 
 def main():
@@ -52,7 +53,7 @@ def main():
     ap.add_argument(
         "--save_segments",
         action="store_true",
-        help="""Save extractions from individual cubes (for plotting)"""
+        help="""Save extractions from individual cubes (for plotting)""",
     )
     args = ap.parse_args()
 
@@ -199,6 +200,13 @@ def cube_sky_aperture_extraction_v3(
     spectrum: Spectrum1D
         The collapsed spectrum.
 
+    Warnings
+    --------
+
+    Not all types of regions are supported. By default, the "subpixel"
+    mode of to_mask is used. If that is not implemented, a warning will
+    be issues and the method will use "center" as a fallback.
+
     """
     # make 2D wcs of cube if needed
     if wcs_2d is None:
@@ -209,7 +217,14 @@ def cube_sky_aperture_extraction_v3(
     nx, ny = cube_spec1d.shape[:2]
 
     pixel_region = sky_region.to_pixel(the_wcs_2d)
-    aperture_mask = pixel_region.to_mask(mode="subpixels", subpixels=20)
+    try:
+        aperture_mask = pixel_region.to_mask(mode="subpixels", subpixels=20)
+    except NotImplementedError:
+        warn(
+            f"subpixel method not implemented for {pixel_region.__class__}.\n"
+            "Falling back to center method."
+        )
+        aperture_mask = pixel_region.to_mask(mode="center")
 
     slices_large, slices_small = aperture_mask.get_overlap_slices((ny, nx))
     yx_slc = slices_large
