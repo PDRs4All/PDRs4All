@@ -16,7 +16,7 @@ def flux_and_snr(ax_f, ax_u, ax_snr, w, f, u, **plot_kwargs):
     ax_f.plot(w, f, **plot_kwargs)
     ax_f.set_ylabel("flux (MJy sr-1)")
     ax_u.plot(w, u, **plot_kwargs)
-    ax_f.set_ylabel("unc (MJy sr-1)")
+    ax_u.set_ylabel("unc (MJy sr-1)")
     ax_snr.plot(w, f / u, **plot_kwargs)
     ax_snr.set_ylabel("S/N")
 
