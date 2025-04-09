@@ -55,6 +55,6 @@ extract_templates "$ROOT"/regions/aper_T_DF_extraction.reg cubes/default/*s3d.fi
 
 extract_templates "$ROOT"/regions/aper_T_DF_extraction.reg cubes/default/*s3d.fits --template_names "HII" "Atomic" "DF3" "DF2" "DF1" --apply_offsets --reference_segment 2 -o templates/default_addstitch.ecsv
 
-extract_templates "$ROOT"/regions/aper_T_DF_extraction.reg cubes/default_wcscorr/nirspec_naive_stitch_wcscorr_s3d.fits --template_names "HII" "Atomic" "DF3" "DF2" "DF1" -o templates/default_wcscorr_nostitch.ecsv
+extract_templates "$ROOT"/regions/aper_T_DF_extraction.reg cubes/default_wcscorr/Level3* --template_names "HII" "Atomic" "DF3" "DF2" "DF1" -o templates/default_wcscorr_nostitch.ecsv
 
-extract_templates "$ROOT"/regions/aper_T_DF_extraction.reg cubes/default_wcscorr/nirspec_naive_stitch_wcscorr_s3d.fits --template_names "HII" "Atomic" "DF3" "DF2" "DF1" --apply_offsets --reference_segment 2 -o templates/default_wcscorr_addstitch.ecsv
+extract_templates "$ROOT"/regions/aper_T_DF_extraction.reg cubes/default_wcscorr/Level3* --template_names "HII" "Atomic" "DF3" "DF2" "DF1" --apply_offsets --reference_segment 2 -o templates/default_wcscorr_addstitch.ecsv

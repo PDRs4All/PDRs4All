@@ -67,7 +67,6 @@ def main(args):
     naive_stitch_fits = output_path / "nirspec_naive_stitch_s3d.fits"
     synth_fits = output_path / "nirspec_synth.fits"
     synth_unc_fits = output_path / "nirspec_synth_unc.fits"
-    naive_stitch_wcscorr_fits = output_path / "nirspec_naive_stitch_wcscorr_s3d.fits"
 
     print("Step 0: load cubes and make naive stitched cube")
     s3ds = [Spectrum1D.read(fn) for fn in args.nirspec_cubes]
@@ -102,12 +101,8 @@ def main(args):
 
     print("Step 2b: apply offset to cube")
 
-    # This is working great with very minimal code
-    naive_cube_dm = datamodels.open(naive_stitch_fits)
-    naive_cube_dm.meta.wcsinfo.crval1 = new_cwcs.wcs.crval[0]
-    naive_cube_dm.meta.wcsinfo.crval2 = new_cwcs.wcs.crval[1]
-
-    # add some extra info to the header
+    # preserve the following header info
+    pipeline_cube_dm = datamodels.open(args.nirspec_cubes[0])
     meta_keys = (
         "bunit_data",
         "bunit_err",
@@ -128,15 +123,19 @@ def main(args):
         "telescope",
         "visit",
     )
-    pipeline_cube_dm = datamodels.open(args.nirspec_cubes[0])
-    for k in meta_keys:
-        value = getattr(pipeline_cube_dm.meta, k)
-        setattr(naive_cube_dm.meta, k, value)
 
-    naive_cube_dm.write(naive_stitch_wcscorr_fits)
+    # open the naive stitched cube and the individual cubes and apply
+    # the same offset to all of them
+    for fn in [naive_stitch_fits] + args.nirspec_cubes:
+        cube_dm = datamodels.open(naive_stitch_fits)
+        cube_dm.meta.wcsinfo.crval1 = new_cwcs.wcs.crval[0]
+        cube_dm.meta.wcsinfo.crval2 = new_cwcs.wcs.crval[1]
+        for k in meta_keys:
+            value = getattr(pipeline_cube_dm.meta, k)
+            setattr(cube_dm.meta, k, value)
 
-    # alternatively, we could open the individual cubes, and correct all
-    # three of their WCS
+        out_fn = Path(fn).name.replace('_s3d.fits', '_wcscorr_s3d.fits')
+        cube_dm.write(output_path / out_fn)
 
 
 if __name__ == "__main__":
