@@ -183,7 +183,7 @@ def nirspec_wcscorr_using_proplyd(reference_image, current_wcs):
         C_PROPLYD_NIRSPEC, reference_image, current_wcs
     )
     dra, ddec = delta_ra_dec_pixel_vs_ref_coord(C_PROPLYD_NIRSPEC, xc, yc, current_wcs)
-    return apply_delta_ra_dec_to_wcs(current_wcs, dra, ddec)
+    return apply_delta_ra_dec_to_wcs(current_wcs, (dra, ddec))
 
 
 def mrs_wcscorr_using_proplyd(images, current_wcss):
