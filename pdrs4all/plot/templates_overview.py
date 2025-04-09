@@ -55,7 +55,15 @@ if __name__ == "__main__":
         flux = t[f"flux_{k}"]
         unc = t[f"unc_{k}"]
         flux_and_snr(
-            axs[0], axs[1], axs[2], wavelength, flux, unc, label=k, color=COLORS[i]
+            axs[0],
+            axs[1],
+            axs[2],
+            wavelength,
+            flux,
+            unc,
+            label=k,
+            color=COLORS[i],
+            drawstyle="steps-mid",
         )
 
     if args.segments_ecsv is not None:
