@@ -13,6 +13,20 @@ from matplotlib.ticker import AutoMinorLocator
 COLORS = ["b", "orange", "g", "r", "m"]
 
 
+def nice_ticks(ax):
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+    ax.tick_params(
+        which="both",
+        axis="both",
+        top=True,
+        bottom=True,
+        left=True,
+        right=True,
+        labelbottom=True,
+    )
+
+
 def flux_and_snr(ax_f, ax_u, ax_snr, w, f, u, **plot_kwargs):
     ax_f.plot(w, f, **plot_kwargs)
     ax_f.set_ylabel("flux (MJy sr-1)")
@@ -56,20 +70,10 @@ if __name__ == "__main__":
 
     print("Plotting templates ", suffixes)
 
-    fig, axs = plt.subplots(3, 1, sharex=True, height_ratios=[2,1,1])
+    fig, axs = plt.subplots(3, 1, sharex=True, height_ratios=[2, 1, 1])
 
     for ax in axs:
-        ax.xaxis.set_minor_locator(AutoMinorLocator())
-        ax.yaxis.set_minor_locator(AutoMinorLocator())
-        ax.tick_params(
-            which="both",
-            axis="both",
-            top=True,
-            bottom=True,
-            left=True,
-            right=True,
-            labelbottom=True,
-        )
+        nice_ticks(ax)
 
     wavelength = t["wavelength"]
     for i, k in enumerate(suffixes):

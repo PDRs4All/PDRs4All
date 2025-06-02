@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 from argparse import ArgumentParser
 import numpy as np
 from matplotlib import ticker
+from pdrs4all.plot.templates_overview import nice_ticks
 
 
 def main():
@@ -45,18 +46,25 @@ def compare_one_template(t1, t2, label1, label2, k):
 
     """
     fig, axs = plt.subplots(2, 1, height_ratios=[2, 1], sharex=True)
+    for ax in axs:
+        nice_ticks(ax)
 
     w1 = t1["wavelength"]
     w2 = t2["wavelength"]
     f1 = t1[f"flux_{k}"]
     f2 = t2[f"flux_{k}"]
 
-    axs[0].plot(w1, f1, label=label1)
-    axs[0].plot(w2, f2, label=label2)
+    axs[0].plot(w1, f1, label=label1, drawstyle='steps-mid')
+    axs[0].plot(w2, f2, label=label2, drawstyle='steps-mid')
 
-    residual = (f2 - f1) / (0.5 * (f1 + f2))
-    axs[1].plot(w1, residual * 100, color="k")
-    axs[1].set_ylabel("(orange - blue) / (0.5 * (orange + blue)) [percent]", ha="left")
+    if len(f2) == len(f1):
+        residual = (f2 - f1) / (0.5 * (f1 + f2))
+        axs[1].plot(w1, residual * 100, color="k")
+        axs[1].set_ylabel("(orange - blue) / (0.5 * (orange + blue)) [percent]", ha="left")
+        axs[1].set_yscale("asinh")
+        axs[1].tick_params(which="minor", left=True)
+    else:
+        print("Cannot directly compute residuals because wavelength grids are different")
 
     axs[0].set_title(k)
     axs[0].legend()
@@ -69,8 +77,6 @@ def compare_one_template(t1, t2, label1, label2, k):
     axs[0].xaxis.set_minor_formatter(ticker.NullFormatter())
     axs[0].xaxis.set_major_formatter(ticker.ScalarFormatter())
 
-    axs[1].set_yscale("asinh")
-    axs[1].tick_params(which="minor", left=True)
 
 
 if __name__ == "__main__":
