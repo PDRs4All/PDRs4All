@@ -55,7 +55,6 @@ def xc_yc_using_photometry_and_ref_coord(c_true, reference_image, current_wcs):
 
     # photutils source identification
     bkg_estimator = MedianBackground()
-    xd, yd = reference_image.shape
     bkg = Background2D(
         reference_image, (10, 10), filter_size=(3, 3), bkg_estimator=bkg_estimator
     )

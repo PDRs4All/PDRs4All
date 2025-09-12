@@ -6,19 +6,28 @@ from jwst import datamodels
 from jwst.datamodels import IFUCubeModel
 from jwst.assign_wcs.pointing import create_fitswcs
 
-
 def write_cube_s1d_wavetab_jwst_s3d_format(fits_fn, s3d, celestial_wcs):
     """Same as write_cube_wavetab_jwst_s3d_format with Spectrum cube as input.
 
     Only works for MJy / sr flux and micron wavelengths at the moment.
 
     """
-    # needs (w, y, x), spectrum1d can have (x, y, w) -> swap when necessary
+    # needs (w, y, x), but old spectrum1d has (x, y, w), new one
+    # typicaly has (w, y, x). Here I assume that spectral axis 0 always
+    # means (w,y,x) and that spectral axis 2 always means (x, y, w)
     flux_array = s3d.flux.value
     unc_array = s3d.uncertainty.array
     if s3d.spectral_axis_index != 0:
-        flux_array = np.moveaxis(flux_array, s3d.spectral_axis_index, 0)
-        unc_array = np.moveaxis(unc_array, s3d.spectral_axis_index, 0)
+        flux_array = np.swapaxes(flux_array, 0, -1)
+        unc_array = np.moveaxis(unc_array, 0, -1)
+
+    if "header" in s3d.meta:
+        naxis321 = [s3d.meta.header[f"NAXIS{i}"] for i in (3, 2, 1)]
+        if s3d.shape != naxis321:
+            raise ValueError(
+                f"Something is wrong, shape {flux_array.shape}"
+                "does not match NAXIS3, NAXIS2, NAXIS1 f{naxis321}"
+            )
 
     write_cube_wavetab_jwst_s3d_format(
         fits_fn,

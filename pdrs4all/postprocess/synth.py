@@ -5,6 +5,7 @@ from astropy.io import fits
 from pdrs4all.postprocess import bandpasses
 from itertools import product
 from tqdm import tqdm
+from spectral_segments import check_spectral_axis_index
 
 DEFAULT_MIN_THROUGHPUT = 1.0e-3  # 1e-4  # 5e-2
 DEFAULT_MIN_COVERAGE = 0.95  # 1.
@@ -326,9 +327,16 @@ def synthesize_nircam_images(nirspec_s3d_merged):
     cc_dict: dict where d[<filter name>] = color correction (not sure what format)
 
     """
-    # Specutils uses x, y, w. Change it to w, y, x
-    comb_cube = np.swapaxes(nirspec_s3d_merged.flux.value, -1, 0)
-    unc_comb_cube = np.swapaxes(nirspec_s3d_merged.uncertainty.array, -1, 0)
+    # since 2.0, specutils loads the flux as (w, y, x)
+    if nirspec_s3d_merged.spectral_axis_index != 0:
+        raise ValueError(
+            "spectral_axis_index should be 0, check if you're using specutils >= 2.0?"
+        )
+
+    check_spectral_axis_index(nirspec_s3d_merged)
+
+    comb_cube = nirspec_s3d_merged.flux.value
+    unc_comb_cube = nirspec_s3d_merged.uncertainty.array
     synth_image_dict, cc_dict = make_synthetic_images_from_cube(
         comb_cube,
         nirspec_s3d_merged.spectral_axis.value,
