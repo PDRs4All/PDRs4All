@@ -93,6 +93,8 @@ def pipeline_class_and_options_dict(stage, instrument, output_dir):
                         # "refpix": skiptrue,
                         # "reset": skiptrue,
                         # "rscd": skiptrue,
+                        "jump": skiptrue,
+                        "ramp_fit": {"algorithm": "LIKELY"},
                     }
                 }
             )
