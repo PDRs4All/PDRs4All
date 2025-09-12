@@ -1,4 +1,4 @@
-from specutils import Spectrum1D
+from specutils import Spectrum
 from astropy.wcs import WCS
 from argparse import ArgumentParser
 from pdrs4all.postprocess.spectral_segments import merge_nd, merge_nd_memfriendly
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     ap.add_argument("--memory_friendly", action="store_true")
     args = ap.parse_args()
 
-    s3ds = [Spectrum1D.read(fn) for fn in args.input_s3d_fits]
+    s3ds = [Spectrum.read(fn) for fn in args.input_s3d_fits]
     s3ds.sort(key=lambda x: x.spectral_axis.value[0])
 
     # Make sure that all cubes are the same shape. From this point on,

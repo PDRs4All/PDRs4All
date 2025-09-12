@@ -11,7 +11,7 @@ from astropy.wcs.utils import proj_plane_pixel_area
 from astropy.nddata import StdDevUncertainty
 from astropy.io import fits
 from regions import Regions, SkyRegion
-from specutils import Spectrum1D
+from specutils import Spectrum
 from pdrs4all.postprocess import spectral_segments
 import numpy as np
 from warnings import warn
@@ -62,7 +62,7 @@ def main():
     cubes = []
     celestial_wcss = []
     for cf in args.cube_files:
-        cubes.append(Spectrum1D.read(cf, format="JWST s3d"))
+        cubes.append(Spectrum.read(cf, format="JWST s3d"))
         with fits.open(cf) as hdulist:
             # need both header and fobj arguments for WAVE-TAB cube it seems
             wcs = WCS(header=hdulist["SCI"], fobj=hdulist)
@@ -149,7 +149,7 @@ def make_templates_table(keys, spec1ds):
         Label for each spectrum to use in the column names. Columns will
         be "flux_k" and "unc_k", for each k in keys.
 
-    spec1ds: list of Spectrum1D
+    spec1ds: list of Spectrum
         It is assumed that all spec1ds have the same wavelength grid.
 
     """
@@ -185,9 +185,9 @@ def cube_sky_aperture_extraction_v3(
 
     Parameters
     ----------
-    cube_spec1d: Spectrum1D
+    cube_spec1d: Spectrum
         Typically an object loaded from a cube file using
-        Spectrum1D.read. Can be a custom Spectrum1D object, but needs to
+        Spectrum.read. Can be a custom Spectrum object, but needs to
         have the right header stored in cube_spec1d.meta["header"] so
         that a WCS can be derived. Alternatively, the wcs_2d parameter
         should be used to pass a celestial WCS manually.
@@ -197,7 +197,7 @@ def cube_sky_aperture_extraction_v3(
 
     Returns
     -------
-    spectrum: Spectrum1D
+    spectrum: Spectrum
         The collapsed spectrum.
 
     Warnings
@@ -283,7 +283,7 @@ def cube_sky_aperture_extraction_v3(
         sigma_flux = StdDevUncertainty(sigma_flux)
 
     # make a spectrum1d object for convenience
-    s1d = Spectrum1D(
+    s1d = Spectrum(
         spectral_axis=cube_spec1d.spectral_axis,
         flux=flux,
         uncertainty=sigma_flux,

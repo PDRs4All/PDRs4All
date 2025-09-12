@@ -8,7 +8,7 @@ from jwst.assign_wcs.pointing import create_fitswcs
 
 
 def write_cube_s1d_wavetab_jwst_s3d_format(fits_fn, s3d, celestial_wcs):
-    """Same as write_cube_wavetab_jwst_s3d_format with Spectrum1D cube as input.
+    """Same as write_cube_wavetab_jwst_s3d_format with Spectrum cube as input.
 
     Only works for MJy / sr flux and micron wavelengths at the moment.
 
@@ -29,7 +29,7 @@ def write_cube_wavetab_jwst_s3d_format(
     """Write cube in same format as jwst pipeline.
 
     The resulting fits file will be loadable by
-    specutils.Spectrum1D.read with format="JWST s3d"
+    specutils.Spectrum.read with format="JWST s3d"
 
     fits_fn: str
 

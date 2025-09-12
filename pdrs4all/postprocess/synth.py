@@ -315,7 +315,7 @@ def synthesize_nircam_images(nirspec_s3d_merged):
     Parameters
     ----------
 
-    nirspec_s3d_merged : Spectrum1D
+    nirspec_s3d_merged : Spectrum
         Merged nirspec cube
 
     Returns
