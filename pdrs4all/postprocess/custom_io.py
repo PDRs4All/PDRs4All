@@ -13,11 +13,17 @@ def write_cube_s1d_wavetab_jwst_s3d_format(fits_fn, s3d, celestial_wcs):
     Only works for MJy / sr flux and micron wavelengths at the moment.
 
     """
-    # needs (w, y, x), spectrum1d has (x, y, w) -> swap -1 and 0
+    # needs (w, y, x), spectrum1d can have (x, y, w) -> swap when necessary
+    flux_array = s3d.flux.value
+    unc_array = s3d.uncertainty.array
+    if s3d.spectral_axis_index != 0:
+        flux_array = np.moveaxis(flux_array, s3d.spectral_axis_index, 0)
+        unc_array = np.moveaxis(unc_array, s3d.spectral_axis_index, 0)
+
     write_cube_wavetab_jwst_s3d_format(
         fits_fn,
-        flux_array=np.swapaxes(s3d.flux.value, -1, 0),
-        unc_array=np.swapaxes(s3d.uncertainty.array, -1, 0),
+        flux_array,
+        unc_array,
         wav_array=s3d.spectral_axis.value,
         celestial_wcs=celestial_wcs,
     )

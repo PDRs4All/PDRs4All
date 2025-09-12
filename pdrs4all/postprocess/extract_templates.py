@@ -166,7 +166,7 @@ def make_templates_table(keys, spec1ds):
 
 
 def cube_sky_aperture_extraction_v3(
-    cube_spec1d, sky_region: SkyRegion, average_per_sr=True, wcs_2d=None
+    cube_spec, sky_region: SkyRegion, average_per_sr=True, wcs_2d=None
 ):
     """Extract spectrum cube using aperture in sky coordinates.
 
@@ -208,13 +208,20 @@ def cube_sky_aperture_extraction_v3(
     be issues and the method will use "center" as a fallback.
 
     """
+    # trying to make things compatible with specutils 2.0
+    cube_spec1d = cube_spec
+    spindex = cube_spec1d.spectral_axis_index
+
     # make 2D wcs of cube if needed
     if wcs_2d is None:
         the_wcs_2d = WCS(cube_spec1d.meta["header"]).celestial
     else:
         the_wcs_2d = wcs_2d
 
-    nx, ny = cube_spec1d.shape[:2]
+    # assume that the data order is (y, x, w) with w in an arbitrary
+    # position
+    nyx = list(cube_spec1d.shape)
+    del nyx[spindex]
 
     pixel_region = sky_region.to_pixel(the_wcs_2d)
     try:
@@ -226,7 +233,7 @@ def cube_sky_aperture_extraction_v3(
         )
         aperture_mask = pixel_region.to_mask(mode="center")
 
-    slices_large, slices_small = aperture_mask.get_overlap_slices((ny, nx))
+    slices_large, slices_small = aperture_mask.get_overlap_slices(nyx)
     yx_slc = slices_large
     weights = aperture_mask.data
     if slices_small is None:
@@ -236,7 +243,8 @@ def cube_sky_aperture_extraction_v3(
     # to ignore some things.. We also create a handy 3D mask that we can
     # multiply the other arrays with, to make sure we ignore the same
     # pixels for them.
-    cube_ma_yx = np.ma.masked_invalid(np.swapaxes(cube_spec1d.flux.value, 0, 1))
+    flux = np.moveaxis(cube_spec1d.flux.value, spindex, 2)
+    cube_ma_yx = np.ma.masked_invalid(flux)
     cube_cutout = cube_ma_yx[yx_slc]
     cube_cutout_used = np.where(cube_cutout.mask, 0, 1)
 
@@ -250,9 +258,10 @@ def cube_sky_aperture_extraction_v3(
     # plt.show()
 
     # # Do the sum, broadcasting the mask over the slices. Einstein
-    # summation for clarity. Basically a vectorized version of aperture_mask.multiply
+    # summation for clarity. Basically a vectorized version of
+    # aperture_mask.multiply
     sum_per_slice = np.einsum(
-        "xyw,xy->w", np.where(cube_cutout_used, cube_cutout, 0), weights
+        "yxw,yx->w", np.where(cube_cutout_used, cube_cutout, 0), weights
     )
 
     # Add units again, and convert to MJy
@@ -261,9 +270,11 @@ def cube_sky_aperture_extraction_v3(
 
     # Apply this to the variance array when uncertainty is provided
     if cube_spec1d.uncertainty is not None:
-        uncertainty_cutout = np.swapaxes(cube_spec1d.uncertainty.array, 0, 1)[yx_slc]
+        uncertainty_cutout = np.moveaxis(cube_spec1d.uncertainty.array, spindex, 1)[
+            yx_slc
+        ]
         variance_cutout = np.square(np.where(cube_cutout_used, uncertainty_cutout, 0))
-        varsum_per_slice = np.einsum("xyw,xy->w", variance_cutout, weights)
+        varsum_per_slice = np.einsum("yxw,yx->w", variance_cutout, weights)
         sigma_flux = np.sqrt(varsum_per_slice) * cube_spec1d.flux.unit * one_px_area
     else:
         sigma_flux = None
@@ -272,7 +283,7 @@ def cube_sky_aperture_extraction_v3(
         # To compute an average, we need the total weight per slice.
         # Weight * pixel size = total area. Num pixels used = total
         # weight but without bad pixels -> slightly different per slice
-        weight_per_slice = np.einsum("xyw,xy->w", cube_cutout_used, weights)
+        weight_per_slice = np.einsum("yxw,yx->w", cube_cutout_used, weights)
         area_per_slice = weight_per_slice * one_px_area
         flux = (flux / area_per_slice).to(cube_spec1d.flux.unit)
 
