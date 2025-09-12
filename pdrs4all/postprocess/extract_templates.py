@@ -270,7 +270,7 @@ def cube_sky_aperture_extraction_v3(
 
     # Apply this to the variance array when uncertainty is provided
     if cube_spec1d.uncertainty is not None:
-        uncertainty_cutout = np.moveaxis(cube_spec1d.uncertainty.array, spindex, 1)[
+        uncertainty_cutout = np.moveaxis(cube_spec1d.uncertainty.array, spindex, 2)[
             yx_slc
         ]
         variance_cutout = np.square(np.where(cube_cutout_used, uncertainty_cutout, 0))
