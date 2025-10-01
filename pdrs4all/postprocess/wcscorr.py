@@ -95,21 +95,26 @@ def xc_yc_using_photometry_and_ref_coord(c_true, reference_image, current_wcs):
 
 
 def xc_yc_using_argmax_and_centroid(reference_image):
-    """This works particularly well for MIRI ch1"""
-    xmax, ymax = np.unravel_index(np.argmax(reference_image), reference_image.shape)
+    """Determine (x,y) of proplyd.
+
+    Works particularly well for MIRI ch1. Very simple method to
+    determine peak: just the maximum.
+
+    """
+    ymax, xmax = np.unravel_index(np.argmax(reference_image), reference_image.shape)
     print("Maximum pixel ", xmax, ymax)
 
     window = 3
     try:
         cutout = reference_image.value[
-            xmax - window : xmax + window + 1, ymax - window : ymax + window + 1
+            ymax - window : ymax + window + 1, xmax - window : xmax + window + 1
         ]
     except Exception as e:
         print("Window for centroid determination out of bounds.")
         raise e
 
     grid_local = range(-window, window + 1)
-    X, Y = np.meshgrid(grid_local, grid_local)
+    Y, X = np.meshgrid(grid_local, grid_local)
 
     # centroid position relative to center of the NxN cutout (can be
     # negative)
@@ -211,8 +216,6 @@ def mrs_wcscorr_using_proplyd(images, current_wcss):
     # calculate offsets for A, B, and C
     delta_ra_dec_abc = []
     for abc in range(3):
-        # very simple method to determine peak: just the maximum for
-        # now. Let's see how well it works.
         xc, yc = xc_yc_using_argmax_and_centroid(ref_images[abc])
 
         delta_ra_dec = delta_ra_dec_pixel_vs_ref_coord(

@@ -163,5 +163,5 @@ def write_i2d(fits_fn, array, wcs, unit=u.MJy / u.sr):
     wcs : WCS
         WCS to be added
     """
-    ccd = CCDData(array.T, wcs=wcs, unit=unit)
+    ccd = CCDData(array, wcs=wcs, unit=unit)
     ccd.write(fits_fn, overwrite=True)
