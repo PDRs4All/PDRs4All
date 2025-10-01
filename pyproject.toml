@@ -18,6 +18,7 @@ tqdm = "^4.66.5"
 photutils = "^2.0.1"
 jupyter = "^1.1.1"
 ipympl = "^0.9.7"
+pandas = "^2.2.3"
 
 [build-system]
 requires = ["poetry-core"]

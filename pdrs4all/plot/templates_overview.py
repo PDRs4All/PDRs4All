@@ -8,15 +8,30 @@ together with the data products .
 from astropy.table import Table
 from argparse import ArgumentParser
 from matplotlib import pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
 
 COLORS = ["b", "orange", "g", "r", "m"]
+
+
+def nice_ticks(ax):
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+    ax.tick_params(
+        which="both",
+        axis="both",
+        top=True,
+        bottom=True,
+        left=True,
+        right=True,
+        labelbottom=True,
+    )
 
 
 def flux_and_snr(ax_f, ax_u, ax_snr, w, f, u, **plot_kwargs):
     ax_f.plot(w, f, **plot_kwargs)
     ax_f.set_ylabel("flux (MJy sr-1)")
     ax_u.plot(w, u, **plot_kwargs)
-    ax_f.set_ylabel("unc (MJy sr-1)")
+    ax_u.set_ylabel("unc (MJy sr-1)")
     ax_snr.plot(w, f / u, **plot_kwargs)
     ax_snr.set_ylabel("S/N")
 
@@ -42,20 +57,38 @@ if __name__ == "__main__":
     Files containing extractions for individual cubes. These segments
     will be plotted to inspect how well the stitching works.""",
     )
+    ap.add_argument(
+        "--keys",
+        nargs="+",
+        help='Which template to plot. E.g. "Atomic" or "DF3"',
+        default=["HII", "Atomic", "DF1", "DF2", "DF3"],
+    )
     args = ap.parse_args()
 
     t = Table.read(args.templates_ecsv)
-    suffixes = [s.split("_", 1)[1] for s in t.colnames if "flux" in s]
+    suffixes = args.keys
 
     print("Plotting templates ", suffixes)
 
-    fig, axs = plt.subplots(3, 1, sharex=True)
+    fig, axs = plt.subplots(3, 1, sharex=True, height_ratios=[2, 1, 1])
+
+    for ax in axs:
+        nice_ticks(ax)
+
     wavelength = t["wavelength"]
     for i, k in enumerate(suffixes):
         flux = t[f"flux_{k}"]
         unc = t[f"unc_{k}"]
         flux_and_snr(
-            axs[0], axs[1], axs[2], wavelength, flux, unc, label=k, color=COLORS[i]
+            axs[0],
+            axs[1],
+            axs[2],
+            wavelength,
+            flux,
+            unc,
+            label=k,
+            color=COLORS[i],
+            drawstyle="steps-mid",
         )
 
     if args.segments_ecsv is not None:
@@ -77,9 +110,6 @@ if __name__ == "__main__":
                 )
 
     axs[0].legend()
-    # for ax in axs:
-    #     ax.set_yscale('log')
-
     fig.set_size_inches(8, 8)
     fig.tight_layout()
 
