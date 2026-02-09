@@ -7,8 +7,8 @@ license = "LICENSE"
 readme = "readme.md"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
-astropy = "^6.0.0"
+python = ">=3.11,<3.14"
+astropy = "^7.0.0"
 crds = ">=11.17.16"
 jwst = ">=1.17.1"
 regions = ">=0.8"
