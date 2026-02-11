@@ -5,14 +5,24 @@ from specutils import Spectrum
 
 
 def check_spectral_axis_index(s3d):
-    if s3d.spectral_axis_index == 0:
-        if "header" in s3d.meta:
-            naxis321 = [s3d.meta.header[f"NAXIS{i}"] for i in (3, 2, 1)]
-            if s3d.shape != naxis321:
-                raise ValueError(
-                    f"Something is wrong, shape {s3d.shape}"
-                    "does not match NAXIS3, NAXIS2, NAXIS1 f{naxis321}"
-                )
+    if s3d.spectral_axis_index != 0:
+        raise ValueError("Only spectral index at 0 is supported")
+
+
+# this isn't working
+# if s3d.spectral_axis_index == 0:
+#     if "header" in s3d.meta:
+#         try:
+#             naxis321 = [s3d.meta["header"][f"NAXIS{i}"] for i in (3, 2, 1)]
+#         except KeyError as e:
+#             print("Keyword not in header. Looks like this")
+#             print(s3d.meta["header"])
+#             raise e
+#         if s3d.shape != naxis321:
+#             raise ValueError(
+#                 f"Something is wrong, shape {s3d.shape}"
+#                 "does not match NAXIS3, NAXIS2, NAXIS1 f{naxis321}"
+#             )
 
 
 def sort(ss):
@@ -95,7 +105,7 @@ def overlap_shifts(ss, percentile=50, full_output=False):
     percentile : float 0 to 100
         Which percentile to use to calculate the shift
     """
-    spindex = ss.spectral_axis_index
+    spindex = ss[0].spectral_axis_index
     shifts = []
     median_left = []
     median_right = []
@@ -344,7 +354,7 @@ def merge_nd_memfriendly(ss):
         slc = [slice(None)] * ss[0].flux.ndim
         # put wavelength mask at the right index
         slc[spindex] = wmask
-        return slc
+        return tuple(slc)
 
     def interp_f(s, wmask):
         return interp1d(
@@ -400,7 +410,9 @@ def merge_nd_memfriendly(ss):
         wmask_overlap = wmask_left & wmask_right
 
         # sliding weight weight(w) = 0 at wmin, 1 at wmax
-        sliding_weight = (new_spectral_axis[wmask_overlap] - wmin) / (wmax - wmin)
+        sliding_weight = np.expand_dims(
+            (new_spectral_axis[wmask_overlap] - wmin) / (wmax - wmin), (1, 2)
+        )
         N_overlap = len(sliding_weight)
         last_N = wslice(slice(-N_overlap, None))
         first_N = wslice(slice(0, N_overlap))

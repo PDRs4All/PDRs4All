@@ -75,8 +75,8 @@ def read_nircam(use_v0_filters=False):
 
         # compute the reference wave
         # defined as the pivot wavelength in Gordon et al. (2022)
-        inttop = np.trapz(wave * eff, wave)
-        intbot = np.trapz(eff / wave, wave)
+        inttop = np.trapezoid(wave * eff, wave)
+        intbot = np.trapezoid(eff / wave, wave)
         ref_wave = np.sqrt(inttop / intbot)
 
         nircam_bandpasses[filtername] = (ref_wave, wave * u.micron, eff)
