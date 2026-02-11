@@ -115,13 +115,13 @@ def overlap_shifts(ss, percentile=50, full_output=False):
             left,
             percentile,
             axis=spindex,
-        )
+        ).value
         median_left.append(med_left)
         med_right = np.nanpercentile(
             right,
             percentile,
             axis=spindex,
-        )
+        ).value
         median_right.append(med_right)
         shifts.append(med_left - med_right)
         noise.append(np.sqrt(np.var(left, axis=-1) + np.var(right, axis=-1)) / 2)
