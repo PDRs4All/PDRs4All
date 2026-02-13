@@ -1,4 +1,4 @@
-from specutils import Spectrum1D
+from specutils import Spectrum
 from astropy.wcs import WCS
 from argparse import ArgumentParser
 from pdrs4all.postprocess.spectral_segments import merge_nd, merge_nd_memfriendly
@@ -30,24 +30,26 @@ if __name__ == "__main__":
     ap.add_argument("--memory_friendly", action="store_true")
     args = ap.parse_args()
 
-    s3ds = [Spectrum1D.read(fn) for fn in args.input_s3d_fits]
+    s3ds = [Spectrum.read(fn) for fn in args.input_s3d_fits]
     s3ds.sort(key=lambda x: x.spectral_axis.value[0])
 
     # Make sure that all cubes are the same shape. From this point on,
     # it will be assumed that all cubes have the same celestial WCS.
-    xy_shapes = [s3d.shape[:2] for s3d in s3ds]
-    if any(shape != xy_shapes[0] for shape in xy_shapes):
+    yx_shapes = []
+    for s3d in s3ds:
+        yx_shape = s3d.shape
+        del yx_shape[s3d.spectral_axis_index]
+        yx_shapes.append(yx_shape)
+
+    if any(shape != yx_shapes[0] for shape in yx_shapes):
         print("All cubes should have the same shape in X and Y")
-        print("Shapes are:", xy_shapes)
+        print("Shapes are:", yx_shapes)
 
     print(
-        f"Opened cubes with shape {xy_shapes}. Starting merge. This may take a lot of memory"
+        f"Opened cubes with shape {yx_shapes}. Starting merge. This may take a lot of memory"
     )
     cwcs = WCS(s3ds[0].meta["header"]).celestial
-    if args.memory_friendly:
-        s3dm = merge_nd_memfriendly(s3ds)
-    else:
-        s3dm = merge_nd(s3ds)
+    s3dm = merge_nd_memfriendly(s3ds)
 
     print(f"Merge finished. Writing result to {args.output_s3d_fits}.")
     write_cube_s1d_wavetab_jwst_s3d_format(args.output_s3d_fits, s3dm, cwcs)

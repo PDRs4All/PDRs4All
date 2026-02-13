@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from pathlib import Path
-from specutils import Spectrum1D
+from specutils import Spectrum
 from astropy.wcs import WCS
 from pdrs4all.postprocess import custom_io, wcscorr
 
@@ -23,7 +23,7 @@ def main():
     # proplyd centroid
 
     # load cubes and sort by wavelength
-    s3ds = [Spectrum1D.read(fn) for fn in args.miri_cubes]
+    s3ds = [Spectrum.read(fn) for fn in args.miri_cubes]
     s3ds.sort(key=lambda s: s.spectral_axis.value[0])
 
     # get all celestial WCS

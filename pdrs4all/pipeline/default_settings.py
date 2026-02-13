@@ -57,7 +57,8 @@ def pipeline_class_and_options_dict(stage, instrument, output_dir):
                     "skip": False,
                     "mask_science_regions": True,
                     "fit_method": "fft",
-                    "background_method": "model",
+                    "n_sigma": 2,
+                    "background_method": None,
                 }
             }
 

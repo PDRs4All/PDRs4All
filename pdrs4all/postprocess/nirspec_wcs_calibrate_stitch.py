@@ -38,7 +38,7 @@ that I need.
 
 """
 
-from specutils import Spectrum1D
+from specutils import Spectrum
 from argparse import ArgumentParser
 from pdrs4all.postprocess import spectral_segments, custom_io, synth, wcscorr
 from astropy.wcs import WCS
@@ -69,8 +69,8 @@ def main(args):
     synth_unc_fits = output_path / "nirspec_synth_unc.fits"
 
     print("Step 0: load cubes and make naive stitched cube")
-    s3ds = [Spectrum1D.read(fn) for fn in args.nirspec_cubes]
-    # merge algorithm needs sorted list of Spectrum1D cubes
+    s3ds = [Spectrum.read(fn) for fn in args.nirspec_cubes]
+    # merge algorithm needs sorted list of Spectrum cubes
     s3ds.sort(key=lambda x: x.spectral_axis.value[0])
     nirspec_cwcs = WCS(s3ds[0].meta["header"]).celestial
 

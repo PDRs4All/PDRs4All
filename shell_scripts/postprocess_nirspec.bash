@@ -2,6 +2,7 @@
 ROOT=~/Repositories/pdrs4all
 
 set -e
+set -x
 # point the script to where the pipeline output is
 RUNDIR="$1"
 

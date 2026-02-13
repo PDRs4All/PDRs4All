@@ -5,6 +5,7 @@ from astropy.io import fits
 from pdrs4all.postprocess import bandpasses
 from itertools import product
 from tqdm import tqdm
+from pdrs4all.postprocess.spectral_segments import check_spectral_axis_index
 
 DEFAULT_MIN_THROUGHPUT = 1.0e-3  # 1e-4  # 5e-2
 DEFAULT_MIN_COVERAGE = 0.95  # 1.
@@ -36,15 +37,15 @@ def compute_colorcor(wave, bandpass, flux_ref, wave_ref, flux_source):
     flux_ref_lambda_ref = np.interp(wave_ref, wave, flux_ref)
 
     # compute the top and bottom integrals
-    inttop = np.trapz(wave * bandpass * flux_source / flux_source_lambda_ref, wave)
-    intbot = np.trapz(wave * bandpass * flux_ref / flux_ref_lambda_ref, wave)
+    inttop = np.trapezoid(wave * bandpass * flux_source / flux_source_lambda_ref, wave)
+    intbot = np.trapezoid(wave * bandpass * flux_ref / flux_ref_lambda_ref, wave)
 
     return inttop / intbot
 
 
-def trapz_uncertainty(y_err, x):
+def trapezoid_uncertainty(y_err, x):
     """
-    Uncertainty in np.trapz(y, x) using error propagation with y_err (uncertainty in y)
+    Uncertainty in np.trapezoid(y, x) using error propagation with y_err (uncertainty in y)
     """
     dx = np.diff(x)
     res = 0.5 * np.sqrt(np.dot(dx**2, (y_err[1:] ** 2 + y_err[:-1] ** 2)))
@@ -127,8 +128,8 @@ def synthetic_photometry_on_spectrum(
         waves_i, tp_interp, flux_ref_i, lambda_eff, flux_source_i
     )
 
-    flux_a_numer = np.trapz(waves_i * flux_source_i * tp_interp, waves_i)
-    flux_a_denom = np.trapz(waves_i * tp_interp, waves_i)
+    flux_a_numer = np.trapezoid(waves_i * flux_source_i * tp_interp, waves_i)
+    flux_a_denom = np.trapezoid(waves_i * tp_interp, waves_i)
 
     flux_convention_a = flux_a_numer / flux_a_denom
     flux_convention_b = np.interp(lambda_eff, waves_i, flux_source_i)
@@ -139,7 +140,7 @@ def synthetic_photometry_on_spectrum(
     if spectrum_unc is not None:
         ### Convention A
         # Calculate uncertainty in numerator and denominator
-        unc_numer = trapz_uncertainty(waves_i * unc_flux_source_i * tp_interp, waves_i)
+        unc_numer = trapezoid_uncertainty(waves_i * unc_flux_source_i * tp_interp, waves_i)
         unc_denom = 0.0
         # Calculate uncertainty in numerator/denominator
         unc_flux_convention_a = np.abs(flux_convention_a) * np.sqrt(
@@ -315,7 +316,7 @@ def synthesize_nircam_images(nirspec_s3d_merged):
     Parameters
     ----------
 
-    nirspec_s3d_merged : Spectrum1D
+    nirspec_s3d_merged : Spectrum
         Merged nirspec cube
 
     Returns
@@ -326,9 +327,16 @@ def synthesize_nircam_images(nirspec_s3d_merged):
     cc_dict: dict where d[<filter name>] = color correction (not sure what format)
 
     """
-    # Specutils uses x, y, w. Change it to w, y, x
-    comb_cube = np.swapaxes(nirspec_s3d_merged.flux.value, -1, 0)
-    unc_comb_cube = np.swapaxes(nirspec_s3d_merged.uncertainty.array, -1, 0)
+    # since 2.0, specutils loads the flux as (w, y, x)
+    if nirspec_s3d_merged.spectral_axis_index != 0:
+        raise ValueError(
+            "spectral_axis_index should be 0, check if you're using specutils >= 2.0?"
+        )
+
+    check_spectral_axis_index(nirspec_s3d_merged)
+
+    comb_cube = nirspec_s3d_merged.flux.value
+    unc_comb_cube = nirspec_s3d_merged.uncertainty.array
     synth_image_dict, cc_dict = make_synthetic_images_from_cube(
         comb_cube,
         nirspec_s3d_merged.spectral_axis.value,
